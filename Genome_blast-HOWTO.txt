@@ -1,0 +1,63 @@
+How to download sequence data for a genome, and setup a blast database locally...
+using Bioperl and a small perl script.
+
+The Fragaria vesca genome is used as a working example.
+
+This assumes: 
+  A *nix computer, such as FreeBSD, Linux, Mac OS X etc with internet access.
+  Use of a shell/terminal/xterm
+  You need these utilities installed: 
+  FTP client (such as gftp, Transmit, or just plain ftp)
+  NCBI blast+ software (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+  Perl (pre installed by default on *nix machines)
+  Bioperl (Bio::Perl. See http://bioperl.org/howtos/Beginners_HOWTO.html)
+
+1. Check that you have the software installed properly
+   Open a command line shell (terminal) and issue these commands:
+
+   ftp -h
+      you should get a "usage" output
+   perl -v
+      you should get information about perl version installed
+   perl -e 'use Bio::Perl;'
+      Should give no ouptput
+   makeblastdb -h
+      prints usage information
+
+2. Create a directory for the data and blast database
+
+   mkdir name-of-a-new-directory-where-you-want-to-put-all-this-stuff
+   cd name-of-the-new-directory-which-you-just-created
+
+3. Download a single file "allcontig.agp.gz" from the the genome data:
+   ftp://ftp.ncbi.nih.gov/genomes/Fragaria_vesca/
+   by using your FTP client, or with command line ftp:
+
+   ftp ftp.ncbi.nih.gov (use "anonymous" as user name and your email address as password)
+      cd genomes/Fragaria_vesca
+      get allcontig.agp.gz
+      quit
+
+2. unzip the file
+   gunzip allcontig.agp.gz
+
+3. Copy the "contig_into_blast.pl" script to the folder "allcontig.agp".
+
+   Make sure the script is executable
+
+   chmod +x contig_into_blast.pl
+
+   Then run it.
+   This script fetches all relevant contigs seen in the allcontig.agp file directly from genbank
+   and saves them to a fasta file. The script then creates a blast database which can be queried
+   using the "blastn" command.
+
+   ./contig_into_blast.pl -contig contigs_list_file_name -fasta new_file_name -blast database_file_name -v
+
+   if the "-v" (-verbose) switch is supplied, the script will output information of what happens along the way. Note that the script may take some considerable time to complete since it fetches the data from genbank.
+
+   Usage example:
+
+   ./contig_into_blast.pl -con allcontig.agp -fas fragaria_vesca_seqs.fa -bla fragaria_vesca.db
+
+
