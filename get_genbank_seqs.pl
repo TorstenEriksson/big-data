@@ -4,6 +4,9 @@
 # A list of genbank identifiers are expected to be found in the first column of a text file
 #
 use Bio::Perl;
+use Bio::Root::Exception;
+#use Error qw(:try);
+use Try::Tiny;
 use Getopt::Long;
 use Date::Format;
 use Data::Dumper;
@@ -65,29 +68,40 @@ if (scalar(@contigs) < 1) {
   exit(1);
 }
 
-# Get sequence data for all contigs
+# Get own process number
+# [see http://stackoverflow.com/questions/20077289/how-to-get-linux-process-id-alone-using-perl]
+my $process_nr = `ps -eo pid,comm,args | awk '/[g]et_genbank/{print \$1}'`;
 
+# Get sequence data for all contigs
 my @msgs;
 my @sobs;
 my $maxlength = 0;
+my $cnt = 0;
 if (! $dryrun) {
   for (@contigs) {
-    my $sob;
-    eval {
-      $sob = get_sequence('genbank', $_);
-    };
-    if ($@) {
-      push @msgs, "Nothing found for $_ ";
-    }
-    else {
-      my $seq_length = length($sob->seq);
+    my $seqObj;
+    $seqObj = GetSob($_);
+    if ($seqObj) {
+      my $seq_length = length($seqObj->seq);
       if ($seq_length > $maxlength) {
         $maxlength = $seq_length;
       }
-      push @sobs, $sob;
+      push @sobs, $seqObj;
+    }
+    else {
+      # If no Genbank record was found, just add a message
+      push @msgs, "Nothing found for $_ ";
     }
   }
 }
+
+# Check if any exception has caused additional processes.
+# If so, we do not want to proceed any further
+my $current_process = `ps -eo pid,comm,args | awk '/[g]et_genbank/{print \$1}'`;
+if ($current_process ne $process_nr) {
+  exit;
+}
+
 # Print sequences
 my $leading = '# ';
 my $trailing = '';
@@ -151,4 +165,20 @@ sub PriUsage {
 
 sub PriVersion {
   print "get_genbank_seqs.pl ver. $version\n";
+}
+
+sub GetSob {
+  my $gbid = $_[0];
+  if ($gbid) {
+    my $sob;
+    try {
+      $sob = get_sequence('genbank', $gbid);
+    }
+    catch {
+      $sob = 0;
+    }
+    finally {
+      return $sob;
+    };
+  }
 }
