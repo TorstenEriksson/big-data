@@ -13,7 +13,7 @@ my $version = '0.1';
 my $error = 0;
 
 # Get supplied file names and switches
-my $contiglist = '';
+my $contiglist = 'allcontig.agp';
 my $fastafile = '';
 my $blastdatabase = '';
 my $dryrun = '';
@@ -42,7 +42,29 @@ if ($contiglist && $fastafile && $blastdatabase) {
     print "Run at:", strftime("Y-m-d H:M:S", @lt), "\n";
   }
 
+  # Chromosomes for the Fragaria genome
+  my %chromosomes = (
+    'LG1' => 'NC_020491.1',
+    'LG2' => 'NC_020492.1',
+    'LG3' => 'NC_020493.1',
+    'LG4' => 'NC_020494.1',
+    'LG5' => 'NC_020495.1',
+    'LG6' => 'NC_020496.1',
+    'LG7' => 'NC_020497.1',
+    'Pltd' => 'NC_015206.1',
+  );
+
   # Get list of all contigs
+  # Exchange some of them for their better versions
+  my %better = (
+    'NW_004440457.1' => $chromosomes{'LG1'},
+    'NW_004440458.1' => $chromosomes{'LG2'},
+    'NW_004440459.1' => $chromosomes{'LG3'},
+    'NW_004440460.1' => $chromosomes{'LG4'},
+    'NW_004440461.1' => $chromosomes{'LG5'},
+    'NW_004440462.1' => $chromosomes{'LG6'},
+    'NW_004440463.1' => $chromosomes{'LG7'},
+  );
   open(my $fh, "<", $contiglist) or die "cannot open < $contiglist: $!";
   my @contigs;
   my $prev = '';
@@ -50,7 +72,12 @@ if ($contiglist && $fastafile && $blastdatabase) {
     if (! /^#/) {
       @_ = split(/\s+/);
       if ($_[0] ne $prev) {
-        push @contigs, $_[0];
+        if ($better{$_[0]}) {
+          push @contigs, $better{$_[0]};
+        }
+        else {
+          push @contigs, $_[0];
+        }
         $prev = $_[0];
       }
     }
@@ -59,6 +86,7 @@ if ($contiglist && $fastafile && $blastdatabase) {
     print 'Found ', scalar(@contigs), ' contig names in ', $contiglist, "\n";
   }
   close $fh;
+
 
   # Get sequence data for all contigs and save to fasta file
 

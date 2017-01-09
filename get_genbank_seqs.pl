@@ -5,7 +5,6 @@
 #
 use Bio::Perl;
 use Bio::Root::Exception;
-#use Error qw(:try);
 use Try::Tiny;
 use Getopt::Long;
 use Date::Format;
@@ -32,7 +31,8 @@ if ($help) {
 # Allowed output formats:
 my @allowed_formats = (
   'fasta',
-  'nexus'
+  'nexus',
+  'genbank',
   );
 
 my $default_format = 'fasta';
@@ -68,9 +68,9 @@ if (scalar(@contigs) < 1) {
   exit(1);
 }
 
-# Get own process number
-# [see http://stackoverflow.com/questions/20077289/how-to-get-linux-process-id-alone-using-perl]
-my $process_nr = `ps -eo pid,comm,args | awk '/[g]et_genbank/{print \$1}'`;
+# Get own process number [assumes BASH]
+# [see http://stackoverflow.com/questions/21063765/get-pid-in-shell-bash]
+my $process_nr = `echo $$`;
 
 # Get sequence data for all contigs
 my @msgs;
@@ -97,11 +97,11 @@ if (! $dryrun) {
 
 # Check if any exception has caused additional processes.
 # If so, we do not want to proceed any further
-my $current_process = `ps -eo pid,comm,args | awk '/[g]et_genbank/{print \$1}'`;
+my $current_process = `echo $$`;
 if ($current_process ne $process_nr) {
-  exit;
+  #exit;
 }
-
+print "printing... scalar @sobs\n";
 # Print sequences
 my $leading = '# ';
 my $trailing = '';
@@ -147,6 +147,17 @@ elsif ($outfmt eq 'nexus') {
   }
   print ";\n";
   print "End;\n";
+}
+elsif ($outfmt eq 'genbank') {
+  print "scalar @sobs\n";
+  $leading = '';
+  $trailing = '';
+  my $new_file = "fetched_" . time() . ".gb";
+  print "$new_file\n";
+  open(my $fh, ">", $new_file) or die "cannot open > $new_file: $!";
+  write_sequence(">$new_file", 'genbank', @sobs);
+  system("cat $new_file");
+  close $fh;
 }
 if (@msgs) {
   print "\n";
