@@ -85,7 +85,7 @@ while (<$fh>) {
   );
 }
 close $fh;
-unlink ($tmpfile);
+#unlink ($tmpfile);
 
 # Read map file (gene feature only)
 my $inputfile = $mapfile;
@@ -94,8 +94,10 @@ open($fh, $inputfile) or die("cannot open > $inputfile: $!");
 while (<$fh>) {
   if (!/^#/) {
     chomp();
-    @_ = split(/\s+/);
+    @_ = split(/[\s\|]+/);
     if ($_[11] eq 'GENE') {
+      print "$_[5] $_[1] $_[2] $_[3]\n";
+      $_[5] =~ s/\.\d+$//; # Remove version
       push(@map,
         [
         $_[5],  # 0 contig id
@@ -124,7 +126,7 @@ for (my $i = 0; $i < scalar(@blast); $i++) {
       }
     }
   }
-  print "$blast[$i]\n";
+  print "@{$blast[$i]}\n";
 }
 
 # Output results
