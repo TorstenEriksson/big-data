@@ -95,7 +95,7 @@ while (<$fh>) {
   if (!/^#/) {
     chomp();
     @_ = split(/\s+/);
-    if ($_[11] == 'GENE') {
+    if ($_[11] eq 'GENE') {
       push(@map,
         [
         $_[5],  # 0 contig id
