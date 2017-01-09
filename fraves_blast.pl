@@ -8,6 +8,22 @@
 #   NCBI blast+ software installed [https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download]
 #   BioPerl installed [Bio::Perl. See http://bioperl.org/howtos/Beginners_HOWTO.html]
 #
+#   Copyright (c) Torsten Eriksson, 2017
+# ---------------------------------------------------------------------------
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ---------------------------------------------------------------------------
+#
 use Bio::Perl;
 use Getopt::Long;
 use Date::Format;
@@ -53,11 +69,14 @@ for (@result) {
   @_ = split(/\s+/);
   push (@blast,
     [
-    $_[0],  # query accession
-    $_[1],  # subject accession [= contig id]
-    $_[2],  # % identity
-    $_[8],  # subject start
-    $_[9],  # subject end
+    $_[0],  # 0 query accession
+    $_[1],  # 1 subject accession [= contig id]
+    $_[2],  # 2 % identity
+    $_[8],  # 3 subject start
+    $_[9],  # 4 subject end
+            # 5 [added later] feature name
+            # 6 [added later] feature id
+            # 7 [added later] orientation
     ]
   );
 }
@@ -73,27 +92,40 @@ while (<$fh>) {
     if ($_[11] == 'GENE') {
       push(@map,
         [
-        $_[5],  # contig id
-        $_[1],  # chromosome
-        $_[2],  # start
-        $_[3],  # stop
-        $_[4],  # orientation
-        $_[9],  # feature name
-        $_[10], # feature id
+        $_[5],  # 0 contig id
+        $_[1],  # 1 chromosome
+        $_[2],  # 2 start
+        $_[3],  # 3 stop
+        $_[4],  # 4 orientation
+        $_[9],  # 5 feature name
+        $_[10], # 6 feature id
         ]
       );
     }
   }
 }
 close $fh;
-# Add map information
-for (@blast) {
 
+# Add map information
+for (my $i = 0; $i < scalar(@blast); $i++) {
+  for (my $f = 0; $f < scalar(@map); $f++) {
+    if ($blast[$i][1] eq $map[$f][0]) {
+      if (($blast[$i][3] >= $map[$f][2]) && ($blast[$i][3] <= $map[$f][3])) {
+        $blast[$i][5] = $map[$f][5]; # feature name
+        $blast[$i][6] = $map[$f][6]; # feature id
+        $blast[$i][7] = $map[$f][4]; # orientation
+        last;
+      }
+    }
+  }
+  print "$blast[$i]\n";
 }
 
-# Output result
+# Output results
 
-exit;
+exit(0);
+
+
 sub PriUsage {
   PriVersion();
   print "Usage:\n";
