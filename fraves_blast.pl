@@ -31,7 +31,7 @@ use Data::Dumper;
 use strict;
 
 my $version = '0.1';
-my $local_genome_home = '~/Documents/Forsk/Genome/';
+my $local_genome_home = '/home/ter062/Documents/Forsk/Genome/';
 my $genome_folder = $local_genome_home . 'Fragaria_vesca_genome_2017-01-02/';
 
 # Get supplied file names and switches
@@ -58,13 +58,17 @@ if (! -e $qfile) {
 }
 
 # Blast
-my @result = split(/\n/, system("blastn -query $qfile -db $bdb -evalue $evalue -outfmt 6"));
+my $tmpfile = 'blast_tmp.txt';
+system("blastn -query $qfile -db $bdb -evalue $evalue -outfmt 6 > $tmpfile");
 # output format 6 contains as default the columns:
 # query acc., subject acc., % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
 # We want sstart & ssend (array index 0, 1, 2, 8, 9)
-# Pick up the result
+
+# Pick up the blast results
 my @blast;
-for (@result) {
+my $fh;
+open($fh, $tmpfile) or die("cannot open > $tmpfile: $!");
+while (<$fh>) {
   chomp();
   @_ = split(/\s+/);
   push (@blast,
@@ -80,11 +84,13 @@ for (@result) {
     ]
   );
 }
+close $fh;
+unlink ($tmpfile);
 
 # Read map file (gene feature only)
 my $inputfile = $mapfile;
 my @map;
-open(my $fh, $inputfile) or die "cannot open > $inputfile: $!";
+open($fh, $inputfile) or die("cannot open > $inputfile: $!");
 while (<$fh>) {
   if (!/^#/) {
     chomp();
