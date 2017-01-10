@@ -33,28 +33,34 @@ This assumes:
    mkdir name-of-a-new-directory-where-you-want-to-put-all-this-stuff
    cd name-of-the-new-directory-which-you-just-created
 
-3. Download a single file "allcontig.agp.gz" from the the genome data:
+3. Download two files from the genome data:
    ftp://ftp.ncbi.nih.gov/genomes/Fragaria_vesca/
    by using your FTP client, or with command line ftp:
 
    ftp ftp.ncbi.nih.gov (use "anonymous" as user name and your email address as password)
       cd genomes/Fragaria_vesca
       get allcontig.agp.gz
+      cd mapview
+      get seq_gene.md.gz
       quit
 
-2. Decompress the downloaded file
+   The second file is strictly not necessary for this step, but you will need it later in order
+   to map genes to blast hits. It may be a good idea to get it at the same time.
+
+2. Decompress the downloaded files
 
    gunzip allcontig.agp.gz
+   gunzip seq_gene.md.gz
 
-3. Copy the "contig_into_blast.pl" script to the folder "allcontig.agp".
+3. Copy the "contig_into_blast.pl" script to the same folder as "allcontig.agp".
 
    cp ~/your-download-folder/contig_into_blast.pl .
 
-   Make sure the script is executable
+4. Make sure the script is executable
 
    chmod +x contig_into_blast.pl
 
-4. Then run "contig_into_blast.pl"
+5. Run "contig_into_blast.pl"
 
    This script fetches all relevant contigs found in the allcontig.agp file directly from Genbank
    and saves them to a fasta file. It then creates a blast database which can later be queried
