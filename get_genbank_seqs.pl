@@ -18,13 +18,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ---------------------------------------------------------------------------
+use strict;
 use Bio::Perl;
-use Bio::Root::Exception;
 use Try::Tiny;
 use Getopt::Long;
-use Date::Format;
-use Data::Dumper;
-use strict;
+#use Data::Dumper;
 
 my $version = '0.1';
 
@@ -114,9 +112,9 @@ if (! $dryrun) {
 # If so, we do not want to proceed any further
 my $current_process = `echo $$`;
 if ($current_process ne $process_nr) {
-  #exit;
+  exit;
 }
-print "printing... scalar @sobs\n";
+
 # Print sequences
 my $leading = '# ';
 my $trailing = '';

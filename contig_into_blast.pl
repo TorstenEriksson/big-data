@@ -1,7 +1,37 @@
 #!/usr/bin/perl -w
 #
+# contig_into_blast.pl
 # Fetches nucleotide data from genbank and creates a local blast database
-# A list of genbank identifiers are expected to be found in the first column of a text file
+# NOTE: The script might attempt to fetch a large amount of data over the internet.
+#       It may take a long time.
+#
+# Input:
+#        -contig "contigs_list_file_name"
+#         A plain text file of Genbank ids that are fetched in fasta format and saved to a file.
+#         The ids are expected to be found in the first column of the file.
+#        -fasta "new_file_name"
+#         The name of the new file that will contain all sequences in fasta format.
+#        -blast "database_file_name"
+#         The name of the blast+ database to create. Any old database with this name will be
+#         overwritten.
+#
+# Optional:
+#        -verbose
+#         This will result in various info being printed along the way.
+#        -help
+#         Brief usage and version information is printed.
+#        -dryrun
+#         For testing, no sequences are fetched.
+#
+# Output: A file with sequence data in fasta format
+#         A blast+ nicleotide database
+#
+# Prerequisites:
+#         Bioperl installed
+#         NCBI blast program installed
+# Warning:
+#         There is currently no error handling when downloading sequences. Bioperl exceptions will
+#         cause the run to croak.
 #
 #   Copyright (c) Torsten Eriksson, 2017
 # ---------------------------------------------------------------------------
@@ -18,12 +48,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ---------------------------------------------------------------------------
+use strict;
 use Getopt::Long;
 use Date::Format;
-#use Data::Dumper;
-use strict;
+use Bio::Perl;
 
-my $version = '0.1';
+# Version
+my $version = '0.2';
 my $error = 0;
 
 # Get supplied file names and switches
@@ -56,29 +87,7 @@ if ($contiglist && $fastafile && $blastdatabase) {
     print "Run at:", strftime("Y-m-d H:M:S", @lt), "\n";
   }
 
-  # Chromosomes for the Fragaria genome
-  my %chromosomes = (
-    'LG1' => 'NC_020491.1',
-    'LG2' => 'NC_020492.1',
-    'LG3' => 'NC_020493.1',
-    'LG4' => 'NC_020494.1',
-    'LG5' => 'NC_020495.1',
-    'LG6' => 'NC_020496.1',
-    'LG7' => 'NC_020497.1',
-    'Pltd' => 'NC_015206.1',
-  );
-
   # Get list of all contigs
-  # Exchange some of them for their better versions
-  my %better = (
-    'NW_004440457.1' => $chromosomes{'LG1'},
-    'NW_004440458.1' => $chromosomes{'LG2'},
-    'NW_004440459.1' => $chromosomes{'LG3'},
-    'NW_004440460.1' => $chromosomes{'LG4'},
-    'NW_004440461.1' => $chromosomes{'LG5'},
-    'NW_004440462.1' => $chromosomes{'LG6'},
-    'NW_004440463.1' => $chromosomes{'LG7'},
-  );
   open(my $fh, "<", $contiglist) or die "cannot open < $contiglist: $!";
   my @contigs;
   my $prev = '';
@@ -86,12 +95,7 @@ if ($contiglist && $fastafile && $blastdatabase) {
     if (! /^#/) {
       @_ = split(/\s+/);
       if ($_[0] ne $prev) {
-        if ($better{$_[0]}) {
-          push @contigs, $better{$_[0]};
-        }
-        else {
-          push @contigs, $_[0];
-        }
+        push @contigs, $_[0];
         $prev = $_[0];
       }
     }
@@ -108,7 +112,7 @@ if ($contiglist && $fastafile && $blastdatabase) {
   # Handle errors in some intelligent way
   if (! $dryrun) {
     my @sobs;
-    open(my $fh, ">", $fastafile) or die "cannot open > $fastafile: $!";
+    open($fh, ">", $fastafile) or die "cannot open > $fastafile: $!";
     for (@contigs) {
       if ($verbose) {
         print "Fetching $_ ...\n";

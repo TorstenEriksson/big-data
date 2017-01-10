@@ -1,28 +1,32 @@
-How to download sequence data for a genome, and setup a blast database locally...
+How to download sequence data for a genome, and setup a blast database locally
 using Bioperl and a small perl script.
+//Torsten Eriksson, jan. 2017
 
 The Fragaria vesca genome is used as a working example.
 
-This assumes: 
+This assumes:
   A *nix computer, such as FreeBSD, Linux, Mac OS X etc with internet access.
   Use of a shell/terminal/xterm
-  You need these utilities installed: 
-  FTP client (such as gftp, Transmit, or just plain ftp)
+  You need these utilities installed:
+  FTP client (such as gftp, Transmit, or just plain command-line ftp)
   NCBI blast+ software (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-  Perl (pre installed by default on *nix machines)
-  Bioperl (Bio::Perl. See http://bioperl.org/howtos/Beginners_HOWTO.html)
+  Perl (pre-installed by default on *nix machines)
+  Bioperl (See http://bioperl.org/howtos/Beginners_HOWTO.html)
 
 1. Check that you have the software installed properly
    Open a command line shell (terminal) and issue these commands:
 
-   ftp -h
-      you should get a "usage" output
    perl -v
       you should get information about perl version installed
    perl -e 'use Bio::Perl;'
-      Should give no ouptput
+      Should give no output
    makeblastdb -h
-      prints usage information
+      Usage information should be printed
+
+   Optional (if you do not use a separate ftp client program):
+
+   ftp -h
+      you should get a "usage" output
 
 2. Create a directory for the data and blast database
 
@@ -38,23 +42,33 @@ This assumes:
       get allcontig.agp.gz
       quit
 
-2. unzip the file
+2. Decompress the downloaded file
+
    gunzip allcontig.agp.gz
 
 3. Copy the "contig_into_blast.pl" script to the folder "allcontig.agp".
+
+   cp ~/your-download-folder/contig_into_blast.pl .
 
    Make sure the script is executable
 
    chmod +x contig_into_blast.pl
 
-   Then run it.
-   This script fetches all relevant contigs seen in the allcontig.agp file directly from genbank
-   and saves them to a fasta file. The script then creates a blast database which can be queried
-   using the "blastn" command.
+4. Then run "contig_into_blast.pl"
 
-   ./contig_into_blast.pl -contig contigs_list_file_name -fasta new_file_name -blast database_file_name -v
+   This script fetches all relevant contigs found in the allcontig.agp file directly from Genbank
+   and saves them to a fasta file. It then creates a blast database which can later be queried
+   using the "blastn" command. For Fragaria vesca, you can use the "fraves_blast.pl" utility.
 
-   if the "-v" (-verbose) switch is supplied, the script will output information of what happens along the way. Note that the script may take some considerable time to complete since it fetches the data from genbank.
+   To check that it works, try:
+
+   ./contig_into_blast.pl -h
+
+   Prints usage info:
+
+   contig_into_blast.pl -contig contigs_list_file_name -fasta new_file_name -blast database_file_name [-verbose] [-help]
+
+   if the "-v" (-verbose) switch is supplied, the script will print information to the screen of what happens, along the way. Note that the script may take considerable time to complete since it fetches all of the genome data from genbank.
 
    Usage example:
 

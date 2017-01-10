@@ -4,6 +4,7 @@
 #
 # Before running this, you need:
 #   A local blast database [run contig_into_blast.pl]
+#   A gene mapping file 'mapview/seq_gene.md' (decompressed) from the genome
 #   A map file to get genes mapped [mapview/seq_gene.md]
 #   NCBI blast+ software installed [https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download]
 #   BioPerl installed [Bio::Perl. See http://bioperl.org/howtos/Beginners_HOWTO.html]
@@ -84,49 +85,55 @@ while (<$fh>) {
 close $fh;
 #unlink ($tmpfile);
 
-# Read map file (gene feature only)
-my $inputfile = $mapfile;
-my @map;
-open($fh, $inputfile) or die("cannot open > $inputfile: $!");
-while (<$fh>) {
-  if (!/^#/) {
-    chomp();
-    @_ = split(/[\s\|]+/);
-    if ($_[11] eq 'GENE') {
-      $_[5] =~ s/\.\d+$//; # Remove version
-      push(@map,
-        [
-        $_[5],  # 0 contig id
-        $_[1],  # 1 chromosome
-        $_[2],  # 2 start
-        $_[3],  # 3 stop
-        $_[4],  # 4 orientation
-        $_[9],  # 5 feature name
-        $_[10], # 6 feature id
-        ]
-      );
-    }
-  }
-}
-close $fh;
-
-# Add map information
-for (my $i = 0; $i < scalar(@blast); $i++) {
-  for (my $f = 0; $f < scalar(@map); $f++) {
-    if ($blast[$i][1] eq $map[$f][0]) {
-      if (($blast[$i][3] >= $map[$f][2]) && ($blast[$i][3] <= $map[$f][3])) {
-        $blast[$i][5] = $map[$f][5]; # feature name
-        $blast[$i][6] = $map[$f][6]; # feature id
-        $blast[$i][7] = $map[$f][4]; # orientation
-        $blast[$i][8] = $map[$f][1]; # chromosome etc
-        last;
+if (-e $mapfile) {
+  # Read map file (gene feature only)
+  my @map;
+  open($fh, $mapfile) or die("cannot open > $mapfile: $!");
+  while (<$fh>) {
+    if (!/^#/) {
+      chomp();
+      @_ = split(/[\s\|]+/);
+      if ($_[11] eq 'GENE') {
+        $_[5] =~ s/\.\d+$//; # Remove version
+        push(@map,
+          [
+          $_[5],  # 0 contig id
+          $_[1],  # 1 chromosome
+          $_[2],  # 2 start
+          $_[3],  # 3 stop
+          $_[4],  # 4 orientation
+          $_[9],  # 5 feature name
+          $_[10], # 6 feature id
+          ]
+        );
       }
     }
   }
-  # Output results as tabbed csv
-  print join("\t", @{$blast[$i]}), "\n";
-}
+  close $fh;
 
+  # Add map information
+  for (my $i = 0; $i < scalar(@blast); $i++) {
+    for (my $f = 0; $f < scalar(@map); $f++) {
+      if ($blast[$i][1] eq $map[$f][0]) {
+        if (($blast[$i][3] >= $map[$f][2]) && ($blast[$i][3] <= $map[$f][3])) {
+          $blast[$i][5] = $map[$f][5]; # feature name
+          $blast[$i][6] = $map[$f][6]; # feature id
+          $blast[$i][7] = $map[$f][4]; # orientation
+          $blast[$i][8] = $map[$f][1]; # chromosome etc
+          last;
+        }
+      }
+    }
+    # Output results as tabbed csv
+    print join("\t", @{$blast[$i]}), "\n";
+  }
+}
+else {
+  # No gene map data, just output blast results
+  for (my $i = 0; $i < scalar(@blast); $i++) {
+    print join("\t", @{$blast[$i]}), "\n";
+  }
+}
 exit(0);
 
 
