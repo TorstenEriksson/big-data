@@ -2,6 +2,10 @@
 #
 # Blast some sequences against the Fragaria vesca genome (local blast database)
 #
+# The query sequences should be in fasta format in a file.
+# The results are combined with gene mapping info (if available) and printed to the
+# screen as csv. Redirect to get a file that can be opened in a spreadsheet program.
+#
 # Before running this, you need:
 #   A local blast database [run contig_into_blast.pl]
 #   A gene mapping file 'mapview/seq_gene.md' (decompressed) from the genome
@@ -29,13 +33,12 @@ use Getopt::Long;
 use strict;
 
 my $version = '0.1';
-my $local_genome_home = '/home/ter062/Documents/Forsk/Genome/';
-my $genome_folder = $local_genome_home . 'Fragaria_vesca_genome_2017-01-02/';
 
 # Get supplied file names and switches
 my $qfile = '';
-my $bdb = $local_genome_home . 'fragaria_seq.db';
-my $mapfile = $genome_folder . 'mapview/seq_gene.md';
+my $default_db_name = 'fragaria_seq.db';
+my $bdb = $default_db_name;
+my $mapfile = 'Fragaria_vesca_genome_2017-01-02/mapview/seq_gene.md';
 my $evalue = 50;
 my $help = '';
 GetOptions (
@@ -141,6 +144,8 @@ sub PriUsage {
   PriVersion();
   print "Usage:\n";
   print "fraves_blast.pl [-help] -query 'filename' [-database 'database-name'] [-evalue integer] \n";
+  print "Default database name is: '$default_db_name'\n";
+  print "Redirect output to get a file.\n";
 }
 
 sub PriVersion {
