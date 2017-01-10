@@ -24,10 +24,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ---------------------------------------------------------------------------
 #
-use Bio::Perl;
 use Getopt::Long;
-use Date::Format;
-use Data::Dumper;
 use strict;
 
 my $version = '0.1';
@@ -96,7 +93,6 @@ while (<$fh>) {
     chomp();
     @_ = split(/[\s\|]+/);
     if ($_[11] eq 'GENE') {
-      print "$_[5] $_[1] $_[2] $_[3]\n";
       $_[5] =~ s/\.\d+$//; # Remove version
       push(@map,
         [
@@ -122,14 +118,14 @@ for (my $i = 0; $i < scalar(@blast); $i++) {
         $blast[$i][5] = $map[$f][5]; # feature name
         $blast[$i][6] = $map[$f][6]; # feature id
         $blast[$i][7] = $map[$f][4]; # orientation
+        $blast[$i][8] = $map[$f][1]; # chromosome etc
         last;
       }
     }
   }
-  print "@{$blast[$i]}\n";
+  # Output results as tabbed csv
+  print join("\t", @{$blast[$i]}), "\n";
 }
-
-# Output results
 
 exit(0);
 
