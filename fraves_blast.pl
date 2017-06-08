@@ -32,7 +32,7 @@
 use Getopt::Long;
 use strict;
 
-my $version = '0.1';
+my $version = '0.2';
 
 # Get supplied file names and switches
 my $qfile = '';
@@ -79,9 +79,11 @@ while (<$fh>) {
     $_[2],  # 2 % identity
     $_[8],  # 3 subject start
     $_[9],  # 4 subject end
-            # 5 [added later] feature name
-            # 6 [added later] feature id
-            # 7 [added later] orientation
+    abs($_[9] - $_[8]), # 5 subject length
+            # 6 [added later] feature name
+            # 7 [added later] feature id
+            # 8 [added later] orientation
+            # 9 [added later] chromosome etc
     ]
   );
 }
@@ -119,10 +121,10 @@ if (-e $mapfile) {
     for (my $f = 0; $f < scalar(@map); $f++) {
       if ($blast[$i][1] eq $map[$f][0]) {
         if (($blast[$i][3] >= $map[$f][2]) && ($blast[$i][3] <= $map[$f][3])) {
-          $blast[$i][5] = $map[$f][5]; # feature name
-          $blast[$i][6] = $map[$f][6]; # feature id
-          $blast[$i][7] = $map[$f][4]; # orientation
-          $blast[$i][8] = $map[$f][1]; # chromosome etc
+          $blast[$i][6] = $map[$f][5]; # feature name
+          $blast[$i][7] = $map[$f][6]; # feature id
+          $blast[$i][8] = $map[$f][4]; # orientation
+          $blast[$i][9] = $map[$f][1]; # chromosome etc
           last;
         }
       }

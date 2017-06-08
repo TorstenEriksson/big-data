@@ -22,7 +22,7 @@ use strict;
 use Bio::Perl;
 use Try::Tiny;
 use Getopt::Long;
-#use Data::Dumper;
+use Data::Dumper;
 
 my $version = '0.1';
 
@@ -162,7 +162,6 @@ elsif ($outfmt eq 'nexus') {
   print "End;\n";
 }
 elsif ($outfmt eq 'genbank') {
-  print "scalar @sobs\n";
   $leading = '';
   $trailing = '';
   my $new_file = "fetched_" . time() . ".gb";
